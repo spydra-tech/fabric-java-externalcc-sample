@@ -14,11 +14,9 @@ public class ContractBootstrap {
 
     private static final String CHAINCODE_SERVER_ADDRESS = "CHAINCODE_SERVER_ADDRESS";
     private static final String CORE_CHAINCODE_ID = "CORE_CHAINCODE_ID";
-    private static final String CORE_PEER_TLS_ENABLED = "CORE_PEER_TLS_ENABLED";
-    private static final String CORE_PEER_TLS_ROOTCERT_FILE = "CORE_PEER_TLS_ROOTCERT_FILE";
-    private static final String ENV_TLS_CLIENT_KEY_FILE = "CORE_TLS_CLIENT_KEY_FILE";
-    private static final String ENV_TLS_CLIENT_CERT_FILE = "CORE_TLS_CLIENT_CERT_FILE";
-
+    public static final String CHAINCODE_TLS_DISABLED = "CHAINCODE_TLS_DISABLED";
+    private static final String CHAINCODE_TLS_KEY = "CHAINCODE_TLS_KEY";
+    private static final String CHAINCODE_TLS_CERT = "CHAINCODE_TLS_CERT";
 
     public static void main(String[] args) throws Exception {
         ChaincodeServerProperties chaincodeServerProperties = new ChaincodeServerProperties();
@@ -36,16 +34,19 @@ public class ContractBootstrap {
             throw new IOException("chaincode id not defined in system env. for example 'CORE_CHAINCODE_ID=externalcc:06d1d324e858751d6eb4211885e9fd9ff74b62cb4ffda2242277fac95d467033'");
         }
 
-        boolean tlsEnabled = Boolean.parseBoolean(System.getenv(CORE_PEER_TLS_ENABLED));
-        if (tlsEnabled) {
-            // String tlsClientRootCertPath = System.getenv(CORE_PEER_TLS_ROOTCERT_FILE);
-            String tlsClientKeyFile = System.getenv(ENV_TLS_CLIENT_KEY_FILE);
-            String tlsClientCertFile = System.getenv(ENV_TLS_CLIENT_CERT_FILE);
+        String tlsDisabledString = System.getenv(CHAINCODE_TLS_DISABLED);
+        if (tlsDisabledString == null) {
+            tlsDisabledString = "true";
+        }
+        boolean tlsDisabled = Boolean.parseBoolean(tlsDisabledString);
+        if (!tlsDisabled) {
+            String ccTLSKeyFile = System.getenv(CHAINCODE_TLS_KEY);
+            String ccTLSCertFile = System.getenv(CHAINCODE_TLS_CERT);
 
             // set values on the server properties
             chaincodeServerProperties.setTlsEnabled(true);
-            chaincodeServerProperties.setKeyFile(tlsClientKeyFile);
-            chaincodeServerProperties.setKeyCertChainFile(tlsClientCertFile);
+            chaincodeServerProperties.setKeyFile(ccTLSKeyFile);
+            chaincodeServerProperties.setKeyCertChainFile(ccTLSCertFile);
         }
 
         ContractRouter contractRouter = new ContractRouter(new String[] {"-i", coreChaincodeIdName});
